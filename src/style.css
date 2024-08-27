@@ -1,0 +1,8 @@
+body {
+    background-image: linear-gradient(90deg, rgba(188,194,193,1) 0%, rgba(202,203,192,1) 100%);
+}
+
+.card {
+    width: 200px;
+    background-image: radial-gradient(circle, rgba(126,63,251,1) 0%, rgba(70,252,226,1) 100%);
+}
