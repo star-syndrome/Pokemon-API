@@ -1,38 +1,70 @@
-// Fetch Pokémon list
-$.ajax({
-	url: "https://pokeapi.co/api/v2/pokemon?limit=100&offset=0",
-	method: "GET",
-	dataType: "json",
-})
-	.done((response) => {
-		let text = "";
-		$.each(response.results, (key, val) => {
-			text += /*html*/ `
-                <div class="card m-2 text-center border border-3 border-dark rounded-5">
-                    <img
-                        src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${
-													key + 1
-												}.png"
-                        class="card-img-top"
-                        alt="${val.name}">
-                    <div class="card-body text-capitalize">
-                        <h4 id="namePoke">${val.name}</h4>
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            data-bs-toggle="modal"
-                            data-bs-target="#staticBackdrop"
-                            onclick="getPokemonDetails('${val.url}')">
-                            Details
-                        </button>
-                    </div>
-                </div>`;
-		});
-		$("#pokemonCards").html(text);
+let currentPage = 1;
+const limit = 20; // Jumlah Pokémon per halaman
+
+// Function to fetch Pokémon list with pagination
+function fetchPokemon(page) {
+	const offset = (page - 1) * limit;
+	$.ajax({
+		url: `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`,
+		method: "GET",
+		dataType: "json",
 	})
-	.fail((err) => {
-		console.error("Error fetching Pokémon list:", err);
-	});
+		.done((response) => {
+			let text = "";
+			$.each(response.results, (key, val) => {
+				text += /*html*/ `
+                    <div class="card m-2 text-center border border-3 border-dark rounded-5">
+                        <img
+                            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${
+															offset + key + 1
+														}.png"
+                            class="card-img-top"
+                            alt="${val.name}">
+                        <div class="card-body text-capitalize">
+                            <h4 id="namePoke">${val.name}</h4>
+                            <button
+                                type="button"
+                                class="btn btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#staticBackdrop"
+                                onclick="getPokemonDetails('${val.url}')">
+                                Details
+                            </button>
+                        </div>
+                    </div>`;
+			});
+			$("#pokemonCards").html(text);
+
+			// Update pagination controls
+			$("#pagination").html(/*html*/ `
+                <button class="btn btn-primary ms-2 mb-3" onclick="prevPage()" ${
+									currentPage === 1 ? "disabled" : ""
+								}>Previous</button>
+                <span class="fw-bold fs-5"> Page ${currentPage} </span>
+                <button class="btn btn-primary me-2 mb-3" onclick="nextPage()">Next</button>
+            `);
+		})
+		.fail((err) => {
+			console.error("Error fetching Pokémon list: ", err);
+		});
+}
+
+// Function for "Next" button
+function nextPage() {
+	currentPage++;
+	fetchPokemon(currentPage);
+}
+
+// Function for "Previous" button
+function prevPage() {
+	if (currentPage > 1) {
+		currentPage--;
+		fetchPokemon(currentPage);
+	}
+}
+
+// Initial fetch
+fetchPokemon(currentPage);
 
 // Fetch Pokémon details for modal
 function getPokemonDetails(url) {
@@ -70,7 +102,7 @@ function getPokemonDetails(url) {
                                 <td class="fw-bold">${stat.stat.name}</td>
                                 <td>
                                     <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar bg-danger" role="progressbar" style="width: ${
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: ${
 																					(stat.base_stat / maxStat) * 100
 																				}%">
                                             ${stat.base_stat}
@@ -84,7 +116,9 @@ function getPokemonDetails(url) {
 			let text = /*html*/ `
                 <div class="container text-center text-capitalize">
                     <h2>${response.name}</h2>
-                    <img src="${response.sprites.other.home.front_default}" width="200px">
+                    <img src="${
+											response.sprites.other.home.front_default
+										}" width="200px">
                     
                     <div class="container m-auto">    
                         <div class="row m-auto fw-bold">
@@ -117,9 +151,21 @@ function getPokemonDetails(url) {
                         <div class="tab-pane container active" id="info">
                             <table class="table table-striped table-hover table-bordered table-info">
                                 <tbody>
-                                    <tr><td class="fw-bold">Height</td><td>${response.height}</td></tr>
-                                    <tr><td class="fw-bold">Weight</td><td>${response.weight}</td></tr>
-                                    <tr><td class="fw-bold">Base Experience</td><td>${response.base_experience}</td></tr>
+                                    <tr><td class="fw-bold">Height</td><td><span class="badge ${
+																			response.height > 50
+																				? "bg-danger"
+																				: "bg-success"
+																		}">${response.height}</td></tr>
+                                    <tr><td class="fw-bold">Weight</td><td><span class="badge ${
+																			response.weight > 500
+																				? "bg-danger"
+																				: "bg-success"
+																		}">${response.weight}</td></tr>
+                                    <tr><td class="fw-bold">Base Experience</td><td><span class="badge ${
+																			response.base_experience > 200
+																				? "bg-danger"
+																				: "bg-success"
+																		}">${response.base_experience}</td></tr>
                                 </tbody>
                             </table>
                         </div>
